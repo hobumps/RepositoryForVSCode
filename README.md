@@ -1,10 +1,14 @@
 <?php
-session_start();
-// DB接続設定
-$dsn = 'mysql:dbname=tb270595db;host=localhost';
+// i.php（修正後）
+$dsn = 'mysql:host=localhost;dbname=tb270594db;charset=utf8mb4';
 $user = 'tb-270594';
-$password = 'w6fETMAwuw';
-$pdo = new PDO($dsn, $user, $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
+$pass = 'w6fETMAwuw';
+$options = [
+  PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+  PDO::ATTR_EMULATE_PREPARES   => false,
+];
+$pdo = new PDO($dsn, $user, $pass, $options);
 try {
     $pdo = new PDO($dsn, $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
