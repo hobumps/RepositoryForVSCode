@@ -2,8 +2,8 @@
 session_start();
 // DB接続設定
 $dsn = 'mysql:dbname=tb270595db;host=localhost';
-$user = '伏字';
-$password = '伏字';
+$user = 'tb-270594';
+$password = 'w6fETMAwuw';
 $pdo = new PDO($dsn, $user, $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
 try {
     $pdo = new PDO($dsn, $user, $password, [
@@ -32,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $mode === 'login') {
             $_SESSION['logged_in'] = true;
             $_SESSION['user_id']   = $user['id']; 
             $_SESSION['username']  = $username;
-            $_SESSION['role']      = $user['role'];
             header('Location: index.php');
             exit;
         } else {
