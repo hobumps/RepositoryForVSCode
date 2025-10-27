@@ -1,87 +1,68 @@
 <?php
-// i.php（修正後）
-$dsn = 'mysql:host=localhost;dbname=tb270594db;charset=utf8mb4';
+session_start();
+
+// --- DB接続設定 ---
+$dsn = 'mysql:host=localhost;dbname=tb270594db;charset=utf8mb4'; // ←あなたが作成したDB名
 $user = 'tb-270594';
-$pass = 'w6fETMAwuw';
-$options = [
-  PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-  PDO::ATTR_EMULATE_PREPARES   => false,
-];
-$pdo = new PDO($dsn, $user, $pass, $options);
+$password = 'w6fETMAwuw';
+
 try {
     $pdo = new PDO($dsn, $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
 } catch (PDOException $e) {
     exit('DB接続エラー: ' . $e->getMessage());
 }
 
+function h($s){ return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+
 $errors = [];
-$mode   = $_POST['mode'] ?? 'login'; // login or register
 
-// ログイン処理
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $mode === 'login') {
+// --- ログイン処理 ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $pw_plain = $_POST['password'] ?? '';
 
-    if ($username === '' || $password === '') {
+    if ($username === '' || $pw_plain === '') {
         $errors[] = 'ユーザー名とパスワードを入力してください。';
     } else {
-        $stmt = $pdo->prepare('SELECT * FROM users WHERE username = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = ? LIMIT 1');
         $stmt->execute([$username]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $u = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($u && password_verify($pw_plain, $u['password_hash'])) {
             $_SESSION['logged_in'] = true;
-            $_SESSION['user_id']   = $user['id']; 
-            $_SESSION['username']  = $username;
-            header('Location: index.php');
+            $_SESSION['user_id']   = $u['id'];
+            $_SESSION['username']  = $u['username'];
+            header('Location: index.php'); // ← ログイン後のページ
             exit;
         } else {
             $errors[] = 'ユーザー名またはパスワードが違います。';
         }
     }
 }
-
-    if (!$errors) {
-        // 重複チェック
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
-        $stmt->execute([$username]);
-        if ($stmt->fetchColumn() > 0) {
-            $errors[] = 'そのユーザー名は既に使われています。';
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)');
-            $stmt->execute([$username, $hash, $role]);
-            $_SESSION['logged_in'] = true;
-            $_SESSION['user_id']   = $user_id;
-            $_SESSION['username']  = $username;
-            header('Location: login.php');
-            exit;
-        }
-    }
-}
-
-function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>タイトル</title>
+  <title>ログイン</title>
   <style>
-    body { font-family: sans-serif; padding:20px; }
-    .tab-btn { margin-right:10px; }
-    form { margin-top:20px; }
-    .error { color:red; }
-    #admin-question { display:none; margin-top:10px; }
+    body { font-family: sans-serif; padding: 30px; }
+    form { max-width: 350px; margin-top: 20px; }
+    label { display: block; margin-top: 10px; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: 8px; box-sizing: border-box;
+    }
+    button { margin-top: 15px; padding: 8px 12px; }
+    .error { color: #b00020; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1 id="form-title">ログイン</h1>
+  <h1>ログイン</h1>
 
-  <button class="tab-btn" onclick="switchTab('login')">ログイン</button>
   <?php if ($errors): ?>
     <div class="error">
       <ul>
@@ -93,19 +74,13 @@ function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
   <?php endif; ?>
 
   <form method="post" action="">
-    <input type="hidden" id="mode" name="mode" value="<?php echo h($mode); ?>">
-    <div>
-      <label for="username">ユーザー名:</label>
-      <input id="username" name="username" type="text" required>
-    </div>
-    <div>
-      <label for="password">パスワード:</label>
-      <input id="password" name="password" type="password" required>
-    </div>
-    <div>
-      <button id="submit-btn" type="submit">ログイン</button>
-    </div>
+    <label for="username">ユーザー名</label>
+    <input id="username" name="username" type="text" required>
+
+    <label for="password">パスワード</label>
+    <input id="password" name="password" type="password" required>
+
+    <button type="submit">ログイン</button>
   </form>
 </body>
 </html>
-
