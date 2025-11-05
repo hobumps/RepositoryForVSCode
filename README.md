@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['logged_in'] = true;
             $_SESSION['user_id']   = $u['id'];
             $_SESSION['username']  = $u['username'];
-            header('Location: index.php'); // ← ログイン後のページ
+            header('Location: message.php'); // ← ログイン後のページ
             exit;
         } else {
             $errors[] = 'ユーザー名またはパスワードが違います。';
