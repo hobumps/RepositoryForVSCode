@@ -1,3 +1,0 @@
-# RepositoryForVSCode
-aaaaaaaa
-iiii
